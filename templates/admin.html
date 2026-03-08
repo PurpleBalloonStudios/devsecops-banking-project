@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+</head>
+<body>
+
+<h2>Admin Panel</h2>
+
+<h3>All Users</h3>
+{% for user in users %}
+    <p>{{ user[0] }} | {{ user[1] }} | ${{ user[2] }}</p>
+{% endfor %}
+
+<h3>All Transactions</h3>
+{% for t in transactions %}
+    <p>{{ t[0] }} → {{ t[1] }} : ${{ t[2] }}</p>
+{% endfor %}
+
+<br>
+<a href="/dashboard">Back to Dashboard</a>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+</head>
+<body>
+    <h2>Welcome {{ username }}</h2>
+    <p>Your balance: ${{ balance }}</p>
+
+    <h3>Transfer Money</h3>
+    <form method="POST" action="/transfer">
+        Send To: <input name="receiver"><br><br>
+        Amount: <input name="amount" type="number"><br><br>
+        <button type="submit">Send</button>
+    </form>
+
+    <h3>Search User</h3>
+    <form method="POST" action="/search">
+        Username: <input name="search"><br><br>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if role == "admin" %}
+        <br><br>
+        <a href="/admin">Go to Admin Panel</a>
+    {% endif %}
+
+    <br><br>
+    <a href="/logout">Logout</a>
+</body>
+</html>

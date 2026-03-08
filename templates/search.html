@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Result</title>
+</head>
+<body>
+
+<h2>Search Result</h2>
+
+{% if result %}
+    <p>Username: {{ result[0] }}</p>
+    <p>Balance: ${{ result[1] }}</p>
+{% else %}
+    <p>No user found.</p>
+{% endif %}
+
+<br>
+<a href="/dashboard">Back to Dashboard</a>
+
+</body>
+</html>
