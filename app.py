@@ -1,9 +1,14 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, flash
 import sqlite3
+import hashlib
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
+reservedCharacters = {"\"", "'", ";", "--", "#", "/*", "*/", "\\", "%", "_", "(", ")"}
+
+def hash_pswrd(password : str) -> str :
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def init_db():
     conn = sqlite3.connect("database.db")
@@ -49,12 +54,15 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
 
+        for aString in reservedCharacters:
+            if aString in username or aString in password:
+                return render_template("register.html", message = "username or password must not have reserved characters.")
+        
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
-
         cursor.execute(f"""
             INSERT INTO users (username, password, role, balance)
-            VALUES ('{username}', '{password}', 'user', 1000)
+            VALUES ('{username}', '{hash_pswrd(password)}', 'user', 1000)
         """)
 
         conn.commit()
@@ -71,21 +79,27 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
+        for aString in reservedCharacters:
+            if aString in username or aString in password:
+                return render_template("login.html", message = "username or password must not have reserved characters.")
+
         conn = sqlite3.connect("database.db")
         cursor = conn.cursor()
 
         cursor.execute(f"""
             SELECT * FROM users
-            WHERE username = '{username}' AND password = '{password}'
+            WHERE username = '{username}'
         """)
 
         user = cursor.fetchone()
         conn.close()
 
-        if user:
+        if user and user[2] == hash_pswrd(password):
             session["username"] = user[1]
             session["role"] = user[3]
             return redirect("/dashboard")
+        else:
+            return render_template("login.html", message="Invalid username or password.")
 
     return render_template("login.html")
 
@@ -121,7 +135,22 @@ def transfer():
 
     sender = session["username"]
     receiver = request.form["receiver"]
-    amount = int(request.form["amount"])
+    #try to turn amount into a number
+    try:
+        amount = int(request.form["amount"])
+        #make sure the amount is not negative
+        if amount < 0:
+            flash("amount cannot be a negative number.")
+            return redirect("/dashboard")
+    except ValueError:
+        flash("amount must be a number")
+        return redirect("/dashboard")
+
+    #make sure no reserved characters in the strings passed to server
+    for aString in reservedCharacters:
+            if aString in sender or aString in receiver:
+                flash("sender, receiver, and amount cannot have reserved characters.")
+                return redirect("/dashboard")
 
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
@@ -153,6 +182,11 @@ def search():
         return redirect("/login")
 
     search_term = request.form["search"]
+
+    for aString in reservedCharacters:
+            if aString in search_term:
+                flash("search term cannot have reserved characters")
+                return redirect("/dashboard")
 
     conn = sqlite3.connect("database.db")
     cursor = conn.cursor()
